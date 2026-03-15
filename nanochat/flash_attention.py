@@ -94,13 +94,14 @@ USE_FA3 = BACKEND == 'fa3'
 # =============================================================================
 # NPU Flash Attention helpers
 # =============================================================================
-def _npu_flash_attention(q, k, v, causal=True):
+def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
     """
     NPU Flash Attention using torch_npu.npu_fusion_attention.
     
     Args:
         q, k, v: Tensors of shape (B, T, H, D) - will be transposed to (B, H, T, D)
         causal: Whether to use causal masking
+        window_size: (left, right) sliding window. -1 means unlimited.
     
     Returns:
         Output tensor of shape (B, T, H, D)
@@ -114,7 +115,20 @@ def _npu_flash_attention(q, k, v, causal=True):
     k_npu = k.transpose(1, 2)
     v_npu = v.transpose(1, 2)
     
-    sparse_mode = 2 if causal else 0
+    left_window = window_size[0] if window_size else -1
+    
+    if left_window > 0 and left_window < T:
+        sparse_mode = 4
+        pre_tockens = left_window
+        next_tockens = 0
+    elif causal:
+        sparse_mode = 2
+        pre_tockens = 2147483647
+        next_tockens = 0
+    else:
+        sparse_mode = 0
+        pre_tockens = 2147483647
+        next_tockens = 2147483647
     
     out = torch_npu.npu_fusion_attention(
         q_npu, k_npu, v_npu,
@@ -122,6 +136,8 @@ def _npu_flash_attention(q, k, v, causal=True):
         input_layout="BNSD",
         scale=scale,
         keep_prob=1.0,
+        pre_tockens=pre_tockens,
+        next_tockens=next_tockens,
         sparse_mode=sparse_mode,
     )
     
@@ -185,7 +201,7 @@ def flash_attn_func(q, k, v, causal=False, window_size=(-1, -1)):
         Output tensor of shape (B, T, H, D)
     """
     if USE_NPU_FA:
-        return _npu_flash_attention(q, k, v, causal=causal)
+        return _npu_flash_attention(q, k, v, causal=causal, window_size=window_size)
     
     if USE_FA3:
         return _fa3.flash_attn_func(q, k, v, causal=causal, window_size=window_size)
