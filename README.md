@@ -7,9 +7,9 @@ nanochat-ascend is a Huawei Ascend NPU port of [nanochat](https://github.com/kar
 | Component | nanochat | nanochat-ascend |
 |-----------|----------|-----------------|
 | Device | CUDA/GPU | **NPU (Huawei Ascend)** |
-| Attention | Flash Attention 3 / SDPA | **NPU Flash Attention** + SDPA fallback |
+| Attention | Flash Attention 3  | **NPU Flash Attention** |
 | Dtype | auto-detect | **NPU + bf16** auto-detect |
-| Compatibility | NVIDIA only | **Full backward compatible** |
+
 
 ## Key Changes
 
@@ -30,11 +30,8 @@ pip install torch-npu
 # Install dependencies
 pip install -r requirements.txt
 
-# Training
-torchrun --standalone --nproc_per_node=8 -m scripts.base_train -- --depth=12
-
-# Inference
-python -m scripts.chat_web
+# Try
+sh runs/speedrun.sh
 ```
 
 ## Requirements
