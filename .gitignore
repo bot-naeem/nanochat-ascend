@@ -16,7 +16,7 @@ wandb/
 kernel_meta/
 
 # Documentation and benchmarks
-docs
+docs/
 
 # Training logs
 runs/*.log
