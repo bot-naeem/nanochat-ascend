@@ -14,3 +14,12 @@ wandb/
 
 # NPU runtime files
 kernel_meta/
+
+# Documentation and benchmarks
+docs
+
+# Training logs
+runs/*.log
+
+# Claude Code local settings
+.claude/settings.local.json

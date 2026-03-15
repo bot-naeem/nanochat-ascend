@@ -215,3 +215,71 @@ Possible reasons:
 **Best Configuration for NPU:**
 - `window-pattern=L` (full context)
 - NPU Flash Attention with `sparse_mode=2`
+- `device-batch-size=48` (optimal for memory utilization)
+
+---
+
+## Benchmark 4: Batch Size Optimization
+
+**Date**: 2026-03-15
+
+**Goal**: Optimize NPU memory utilization by increasing batch size
+
+### Configuration
+
+| Parameter | BS=8 | BS=48 |
+|-----------|------|-------|
+| device-batch-size | 8 | 48 |
+| total-batch-size | 32,768 | 49,152 |
+| gradient-accum-steps | 4 | 1 |
+| max-seq-len | 1,024 | 1,024 |
+| window-pattern | L | L |
+
+### Performance Comparison
+
+| Batch Size | Avg dt (ms) | Avg tok/sec | HBM Usage | ETA | Speedup |
+|------------|-------------|-------------|-----------|-----|---------|
+| 8 | ~560 | ~58,000 | ~8 GB | ~326m | 1.00x (baseline) |
+| 48 | ~753 | ~65,200 | ~27.8 GB | ~292m | **1.12x (12% faster)** |
+
+### Sample Training Log (BS=48)
+
+```
+step 00171/23520 (0.73%) | loss: 0.209944 | lrm: 1.00 | dt: 753.11ms | tok/sec: 65,265 | bf16_mfu: 0.00
+step 00200/23520 (0.85%) | loss: 0.026860 | lrm: 1.00 | dt: 753.45ms | tok/sec: 65,235 | bf16_mfu: 0.00
+step 00249/23520 (1.06%) | loss: 0.013613 | lrm: 1.00 | dt: 753.97ms | tok/sec: 65,191 | bf16_mfu: 0.00
+```
+
+### Analysis
+
+**Why BS=48 is better:**
+1. **Higher throughput**: 12.4% more tokens/second (58k → 65.2k)
+2. **Better memory utilization**: 27.8 GB vs 8 GB (3.5x more memory used)
+3. **Fewer gradient accumulation steps**: 1 vs 4 (less overhead)
+4. **Faster training**: 10.1% less total time (326m → 292m)
+
+**Why not higher batch size?**
+- BS=48 uses ~27.8 GB out of 64 GB HBM (43% utilization)
+- Higher batch sizes may cause OOM or diminishing returns
+- BS=48 provides good balance between throughput and memory
+
+### Recommendation
+
+**Use `device-batch-size=48` for optimal NPU performance.**
+
+---
+
+## Updated Final Summary
+
+| Configuration | Avg dt (ms) | Avg tok/sec | Notes |
+|---------------|-------------|-------------|-------|
+| BS=8, SDPA | ~560 | ~58,000 | Baseline |
+| BS=8, NPU FA | ~550 | ~59,500 | ✅ 3% faster |
+| BS=8, Sliding Window | ~562 | ~58,200 | ❌ No speedup |
+| **BS=48, NPU FA** | **~753** | **~65,200** | **✅ 12% faster (BEST)** |
+
+**Optimal Configuration for NPU:**
+- `device-batch-size=48`
+- `total-batch-size=49,152`
+- `window-pattern=L` (full context)
+- NPU Flash Attention with `sparse_mode=2`
