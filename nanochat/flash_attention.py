@@ -1,8 +1,12 @@
 """
-Unified Flash Attention interface with automatic FA3/SDPA switching.
+Unified Flash Attention interface with automatic NPU/FA3/SDPA switching.
 
-Exports `flash_attn` module that matches the FA3 API exactly, but falls back
-to PyTorch SDPA on non-Hopper GPUs (including Blackwell), MPS, and CPU.
+Exports `flash_attn` module that matches the FA3 API exactly.
+
+Priority:
+1. NPU Flash Attention (torch_npu.npu_fusion_attention) on Ascend NPU
+2. Flash Attention 3 on Hopper GPUs (sm90)
+3. PyTorch SDPA fallback on other devices
 
 Usage (drop-in replacement for FA3):
     from nanochat.flash_attention import flash_attn
@@ -13,22 +17,41 @@ Usage (drop-in replacement for FA3):
     # Inference (with KV cache)
     y = flash_attn.flash_attn_with_kvcache(q, k_cache, v_cache, k=k, v=v, ...)
 """
-import torch, torch_npu
-from torch_npu.contrib import transfer_to_npu
+import torch
 import torch.nn.functional as F
+import math
 
 
 # =============================================================================
-# Detection: Try to load FA3 on Hopper+ GPUs
+# Detection: Check device and available backends
 # =============================================================================
+
+def _is_npu_available():
+    """Check if running on Huawei Ascend NPU."""
+    try:
+        import torch_npu
+        return torch_npu.npu.is_available()
+    except ImportError:
+        return False
+
+def _has_npu_flash_attention():
+    """Check if NPU Flash Attention API is available."""
+    try:
+        import torch_npu
+        return hasattr(torch_npu, 'npu_fusion_attention')
+    except ImportError:
+        return False
+
+IS_NPU = _is_npu_available()
+HAS_NPU_FA = _has_npu_flash_attention()
+
+
 def _load_flash_attention_3():
     """Try to load Flash Attention 3 (requires Hopper GPU, sm90)."""
     if not torch.cuda.is_available():
         return None
     try:
         major, _ = torch.cuda.get_device_capability()
-        # FA3 kernels are compiled for Hopper (sm90) only
-        # Ada (sm89), Blackwell (sm100) need SDPA fallback until FA3 is recompiled
         if major != 9:
             return None
         import os
@@ -42,26 +65,70 @@ def _load_flash_attention_3():
 _fa3 = _load_flash_attention_3()
 HAS_FA3 = _fa3 is not None
 
-# Override for testing: set to 'fa3', 'sdpa', or None (auto)
 _override_impl = None
 
 
-def _resolve_use_fa3():
-    """Decide once whether to use FA3, based on availability, override, and dtype."""
-    if _override_impl == 'fa3':
-        assert HAS_FA3, "Cannot override to FA3: not available on this hardware"
-        return True
-    if _override_impl == 'sdpa':
-        return False
+def _resolve_backend():
+    """
+    Decide which backend to use.
+    Returns: 'npu', 'fa3', or 'sdpa'
+    """
+    if _override_impl:
+        return _override_impl
+    
+    if IS_NPU and HAS_NPU_FA:
+        return 'npu'
+    
     if HAS_FA3:
-        # FA3 Hopper kernels only support bf16 and fp8; fp16/fp32 must use SDPA fallback
         from nanochat.common import COMPUTE_DTYPE
         if COMPUTE_DTYPE == torch.bfloat16:
-            return True
-        return False
-    return False
+            return 'fa3'
+    
+    return 'sdpa'
 
-USE_FA3 = _resolve_use_fa3()
+BACKEND = _resolve_backend()
+USE_NPU_FA = BACKEND == 'npu'
+USE_FA3 = BACKEND == 'fa3'
+
+
+# =============================================================================
+# NPU Flash Attention helpers
+# =============================================================================
+def _npu_flash_attention(q, k, v, causal=True):
+    """
+    NPU Flash Attention using torch_npu.npu_fusion_attention.
+    
+    Args:
+        q, k, v: Tensors of shape (B, T, H, D) - will be transposed to (B, H, T, D)
+        causal: Whether to use causal masking
+    
+    Returns:
+        Output tensor of shape (B, T, H, D)
+    """
+    import torch_npu
+    
+    B, T, H, D = q.shape
+    scale = 1.0 / math.sqrt(D)
+    
+    q_npu = q.transpose(1, 2)
+    k_npu = k.transpose(1, 2)
+    v_npu = v.transpose(1, 2)
+    
+    sparse_mode = 2 if causal else 0
+    
+    out = torch_npu.npu_fusion_attention(
+        q_npu, k_npu, v_npu,
+        head_num=H,
+        input_layout="BNSD",
+        scale=scale,
+        keep_prob=1.0,
+        sparse_mode=sparse_mode,
+    )
+    
+    if isinstance(out, tuple):
+        out = out[0]
+    
+    return out.transpose(1, 2)
 
 
 # =============================================================================
@@ -117,16 +184,18 @@ def flash_attn_func(q, k, v, causal=False, window_size=(-1, -1)):
     Returns:
         Output tensor of shape (B, T, H, D)
     """
+    if USE_NPU_FA:
+        return _npu_flash_attention(q, k, v, causal=causal)
+    
     if USE_FA3:
         return _fa3.flash_attn_func(q, k, v, causal=causal, window_size=window_size)
 
-    # SDPA fallback: transpose (B, T, H, D) -> (B, H, T, D)
     q = q.transpose(1, 2)
     k = k.transpose(1, 2)
     v = v.transpose(1, 2)
     enable_gqa = q.size(1) != k.size(1)
     y = _sdpa_attention(q, k, v, window_size, enable_gqa)
-    return y.transpose(1, 2)  # back to (B, T, H, D)
+    return y.transpose(1, 2)
 
 
 def flash_attn_with_kvcache(q, k_cache, v_cache, k=None, v=None, cache_seqlens=None,

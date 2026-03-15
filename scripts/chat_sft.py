@@ -90,8 +90,13 @@ use_dummy_wandb = args.run == "dummy" or not master_process
 wandb_run = DummyWandb() if use_dummy_wandb else wandb.init(project="nanochat-sft", name=args.run, config=user_config)
 
 # Flash Attention status
-is_npu = hasattr(torch, 'npu') and torch.npu.is_available()
-if not HAS_FA3:
+from nanochat.flash_attention import USE_FA3, USE_NPU_FA
+if USE_FA3:
+    print0("✓ Using Flash Attention 3 (Hopper GPU detected), efficient, new and awesome.")
+elif USE_NPU_FA:
+    print0("✓ Using NPU Flash Attention (torch_npu.npu_fusion_attention), optimized for Ascend NPU.")
+else:
+    is_npu = hasattr(torch, 'npu') and torch.npu.is_available()
     if is_npu:
         print0("INFO: Running on NPU, using torch_npu optimized SDPA (Flash Attention backend)")
     else:
