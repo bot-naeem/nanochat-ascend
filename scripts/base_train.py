@@ -107,11 +107,16 @@ if using_fa3:
     print0("✓ Using Flash Attention 3 (Hopper GPU detected), efficient, new and awesome.")
 else:
     print0("!" * 80)
-    if HAS_FA3 and COMPUTE_DTYPE != torch.bfloat16:
+    is_npu = hasattr(torch, 'npu') and torch.npu.is_available()
+    if is_npu:
+        print0("INFO: Running on NPU, using torch_npu optimized SDPA (Flash Attention backend)")
+        print0("INFO: SDPA on NPU is automatically optimized by torch_npu, no FA3 needed")
+    elif HAS_FA3 and COMPUTE_DTYPE != torch.bfloat16:
         print0(f"WARNING: Flash Attention 3 only supports bf16, but COMPUTE_DTYPE={COMPUTE_DTYPE}. Using PyTorch SDPA fallback")
+        print0("WARNING: Training will be less efficient without FA3")
     else:
         print0("WARNING: Flash Attention 3 not available, using PyTorch SDPA fallback")
-    print0("WARNING: Training will be less efficient without FA3")
+        print0("WARNING: Training will be less efficient without FA3")
     if args.window_pattern != "L":
         print0(f"WARNING: SDPA has no support for sliding window attention (window_pattern='{args.window_pattern}'). Your GPU utilization will be terrible.")
         print0("WARNING: Recommend using --window-pattern L for full context attention without alternating sliding window patterns.")
