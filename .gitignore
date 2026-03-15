@@ -23,3 +23,4 @@ runs/*.log
 
 # Claude Code local settings
 .claude/settings.local.json
+export_only_prof_dir/
