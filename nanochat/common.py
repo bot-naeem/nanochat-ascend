@@ -165,9 +165,11 @@ def get_dist_info():
         return False, 0, 0, 1
 
 def autodetect_device_type():
-    # prefer to use CUDA if available, otherwise use MPS, otherwise fallback on CPU
+    # prefer to use CUDA if available, then NPU, then MPS, otherwise fallback on CPU
     if torch.cuda.is_available():
         device_type = "cuda"
+    elif hasattr(torch, 'npu') and torch.npu.is_available():
+        device_type = "npu"
     elif torch.backends.mps.is_available():
         device_type = "mps"
     else:
@@ -175,12 +177,14 @@ def autodetect_device_type():
     print0(f"Autodetected device type: {device_type}")
     return device_type
 
-def compute_init(device_type="cuda"): # cuda|cpu|mps
+def compute_init(device_type="cuda"): # cuda|npu|cpu|mps
     """Basic initialization that we keep doing over and over, so make common."""
 
-    assert device_type in ["cuda", "mps", "cpu"], "Invalid device type atm"
+    assert device_type in ["cuda", "npu", "mps", "cpu"], "Invalid device type atm"
     if device_type == "cuda":
         assert torch.cuda.is_available(), "Your PyTorch installation is not configured for CUDA but device_type is 'cuda'"
+    if device_type == "npu":
+        assert hasattr(torch, 'npu') and torch.npu.is_available(), "Your PyTorch installation is not configured for NPU but device_type is 'npu'"
     if device_type == "mps":
         assert torch.backends.mps.is_available(), "Your PyTorch installation is not configured for MPS but device_type is 'mps'"
 
@@ -190,6 +194,8 @@ def compute_init(device_type="cuda"): # cuda|cpu|mps
     torch.manual_seed(42)
     if device_type == "cuda":
         torch.cuda.manual_seed(42)
+    elif device_type == "npu":
+        torch.npu.manual_seed(42)
     # skipping full reproducibility for now, possibly investigate slowdown later
     # torch.use_deterministic_algorithms(True)
 
@@ -197,12 +203,17 @@ def compute_init(device_type="cuda"): # cuda|cpu|mps
     if device_type == "cuda":
         torch.set_float32_matmul_precision("high") # uses tf32 instead of fp32 for matmuls, see https://docs.pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html
 
-    # Distributed setup: Distributed Data Parallel (DDP), optional, and requires CUDA
+    # Distributed setup: Distributed Data Parallel (DDP), optional, and requires CUDA or NPU
     is_ddp_requested, ddp_rank, ddp_local_rank, ddp_world_size = get_dist_info()
     if is_ddp_requested and device_type == "cuda":
         device = torch.device("cuda", ddp_local_rank)
         torch.cuda.set_device(device)  # make "cuda" default to this device
         dist.init_process_group(backend="nccl", device_id=device)
+        dist.barrier()
+    elif is_ddp_requested and device_type == "npu":
+        device = torch.device("npu", ddp_local_rank)
+        torch.npu.set_device(device)  # make "npu" default to this device
+        dist.init_process_group(backend="hccl")
         dist.barrier()
     else:
         device = torch.device(device_type) # mps|cpu
@@ -269,6 +280,11 @@ def get_peak_flops(device_name: str) -> float:
         (["5090"], 209.5e12),
         (["4090"], 165.2e12),
         (["3090"], 71e12),
+        # Huawei Ascend NPU
+        (["910b"], 320e12),   # Ascend 910B BF16 peak
+        (["910a"], 256e12),   # Ascend 910A BF16 peak
+        (["910 pro b"], 320e12),
+        (["910 pro"], 256e12),
     )
     for patterns, flops in _PEAK_FLOPS_TABLE:
         if all(p in name for p in patterns):
