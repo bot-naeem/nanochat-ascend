@@ -19,14 +19,27 @@ The primary goal of this project is to port nanochat to Huawei Ascend NPU platfo
 
 ## Quick Start
 
-### Prerequisites
+### Environment Setup
+
+This project requires a conda environment with Huawei Ascend NPU support.
 
 ```bash
-# Install dependencies
-pip install -r requirement.txt
+# Create conda environment
+conda create -n npu python=3.10
 
-# Install torch_npu (Huawei Ascend PyTorch plugin)
-pip install torch_npu
+# Activate environment
+conda activate npu
+
+# Install PyTorch with NPU support (choose one):
+
+# Option 1: Install from official source
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Option 2: Install torch-npu (Huawei Ascend)
+pip install torch-npu
+
+# Install project dependencies
+pip install -r requirements.txt
 ```
 
 ### Running on NPU
