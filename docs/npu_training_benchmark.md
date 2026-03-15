@@ -132,3 +132,86 @@ out = torch_npu.npu_fusion_attention(
     sparse_mode=2,  # causal
 )
 ```
+
+---
+
+## Benchmark 3: Sliding Window Attention (FAILED - No Speedup)
+
+**Date**: 2026-03-15
+
+**Implementation**: torch_npu.npu_fusion_attention with sparse_mode=4 (sliding window)
+
+**Status**: ❌ No performance improvement, sliding window is SLOWER on NPU
+
+### Motivation
+
+Sliding window attention reduces computation by limiting the attention window. For `window_pattern=SSSL`:
+- 9 layers use sliding window (window_size=384)
+- 3 layers use full context (window_size=1024)
+- Expected ~40% computation reduction
+
+### Window Pattern Configuration
+
+| Layer | window_size | Type |
+|-------|-------------|------|
+| 0,1,2 | 384 | Sliding Window |
+| 3 | 1024 | Full Context |
+| 4,5,6 | 384 | Sliding Window |
+| 7 | 1024 | Full Context |
+| 8,9,10 | 384 | Sliding Window |
+| 11 | 1024 | Full Context |
+
+### Performance Metrics
+
+| Metric | Value |
+|--------|-------|
+| Average dt (step time) | ~562ms |
+| Average tok/sec | ~58,200 |
+| bf16_mfu | 0.00 |
+| ETA for full training | ~325 minutes |
+
+### Sample Training Log
+
+```
+step 00100/35280 (0.28%) | loss: 2.544157 | lrm: 1.00 | dt: 562.28ms | tok/sec: 58,276
+step 00110/35280 (0.31%) | loss: 1.405235 | lrm: 1.00 | dt: 562.34ms | tok/sec: 58,271
+step 00120/35280 (0.34%) | loss: 0.792527 | lrm: 1.00 | dt: 563.21ms | tok/sec: 58,180
+```
+
+### Micro-benchmark Results
+
+Direct comparison of different sparse_mode values:
+
+| sparse_mode | Window Size | Time/iter | Relative Performance |
+|-------------|-------------|-----------|---------------------|
+| 2 (full causal) | 1024 | 0.45ms | 1.00x (baseline) |
+| 4 (sliding window) | 384 | 0.44ms | 1.02x |
+| 4 (sliding window) | 512 | 0.47ms | 0.96x |
+| 4 (sliding window) | 256 | 0.48ms | 0.94x |
+
+### Conclusion
+
+**Sliding window attention does NOT provide speedup on Ascend NPU.**
+
+Possible reasons:
+1. NPU's `sparse_mode=4` implementation is not optimized for sliding window
+2. Sliding window requires additional boundary handling overhead
+3. Short sequence length (1024) means attention is not the main bottleneck
+
+### Recommendation
+
+**Use `window-pattern=L` (full context) on NPU for best performance.**
+
+---
+
+## Final Summary
+
+| Implementation | Avg dt (ms) | Avg tok/sec | Notes |
+|----------------|-------------|-------------|-------|
+| SDPA (torch_npu) | ~560 | ~58,000 | Baseline |
+| NPU Flash Attention | ~550 | ~59,500 | ✅ 3% faster |
+| Sliding Window (SSSL) | ~562 | ~58,200 | ❌ No speedup |
+
+**Best Configuration for NPU:**
+- `window-pattern=L` (full context)
+- NPU Flash Attention with `sparse_mode=2`

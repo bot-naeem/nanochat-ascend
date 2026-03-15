@@ -71,7 +71,7 @@ TORCHDYNAMO_DISABLE=1 torchrun --standalone --nproc_per_node=1 -m scripts.base_t
     --depth=12 \
     --run=$WANDB_RUN \
     --model-tag="d12" \
-    --device-batch-size=4 \
+    --device-batch-size=48 \
     --total-batch-size=32768 \
     --max-seq-len=1024 \
     --window-pattern=L \
