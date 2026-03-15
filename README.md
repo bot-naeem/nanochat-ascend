@@ -30,7 +30,7 @@ pip install torch-npu
 # Install dependencies
 pip install -r requirements.txt
 
-# Try
+# Quick Experimentation
 sh runs/speedrun.sh
 ```
 

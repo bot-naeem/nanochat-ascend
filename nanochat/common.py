@@ -165,11 +165,12 @@ def get_dist_info():
         return False, 0, 0, 1
 
 def autodetect_device_type():
-    # prefer to use CUDA if available, then NPU, then MPS, otherwise fallback on CPU
-    if torch.cuda.is_available():
-        device_type = "cuda"
-    elif hasattr(torch, 'npu') and torch.npu.is_available():
+    # prefer to use NPU first (since torch_npu may make cuda.is_available return True)
+    # then CUDA, then MPS, otherwise fallback on CPU
+    if hasattr(torch, 'npu') and torch.npu.is_available():
         device_type = "npu"
+    elif torch.cuda.is_available():
+        device_type = "cuda"
     elif torch.backends.mps.is_available():
         device_type = "mps"
     else:
