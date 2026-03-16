@@ -96,10 +96,13 @@ USE_FA3 = BACKEND == 'fa3'
 # =============================================================================
 def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
     """
-    NPU Flash Attention using torch_npu.npu_fusion_attention.
+    NPU Flash Attention using torch_npu.npu_fusion_attention with BSH layout.
+    
+    Uses BSH (Batch, Sequence, Hidden) layout to avoid costly transpose operations.
+    reshape/view is zero-copy (just changes strides), while transpose triggers contiguous().
     
     Args:
-        q, k, v: Tensors of shape (B, T, H, D) - will be transposed to (B, H, T, D)
+        q, k, v: Tensors of shape (B, T, H, D)
         causal: Whether to use causal masking
         window_size: (left, right) sliding window. -1 means unlimited.
     
@@ -111,9 +114,10 @@ def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
     B, T, H, D = q.shape
     scale = 1.0 / math.sqrt(D)
     
-    q_npu = q.transpose(1, 2)
-    k_npu = k.transpose(1, 2)
-    v_npu = v.transpose(1, 2)
+    # BSH layout: reshape (B, T, H, D) -> (B, T, H*D), zero-copy operation
+    q_bsh = q.reshape(B, T, H * D)
+    k_bsh = k.reshape(B, T, H * D)
+    v_bsh = v.reshape(B, T, H * D)
     
     left_window = window_size[0] if window_size else -1
     
@@ -131,9 +135,9 @@ def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
         next_tockens = 2147483647
     
     out = torch_npu.npu_fusion_attention(
-        q_npu, k_npu, v_npu,
+        q_bsh, k_bsh, v_bsh,
         head_num=H,
-        input_layout="BNSD",
+        input_layout="BSH",
         scale=scale,
         keep_prob=1.0,
         pre_tockens=pre_tockens,
@@ -144,7 +148,8 @@ def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
     if isinstance(out, tuple):
         out = out[0]
     
-    return out.transpose(1, 2)
+    # BSH output (B, T, H*D) -> (B, T, H, D), zero-copy view
+    return out.view(B, T, H, D)
 
 
 # =============================================================================

@@ -26,6 +26,25 @@ from nanochat.optim import MuonAdamW, DistMuonAdamW
 # Our custom Flash Attention module that automatically uses FA3 on Hopper+ and SDPA fallback elsewhere
 from nanochat.flash_attention import flash_attn
 
+# NPU-optimized RMSNorm: uses fused npu_rms_norm kernel when available
+_IS_NPU = hasattr(torch, 'npu') and torch.npu.is_available()
+# Cache for gamma tensors (one per hidden size) to avoid re-creating them
+_rms_norm_gamma_cache = {}
+
+def norm(x):
+    if _IS_NPU:
+        hidden_size = x.size(-1)
+        if hidden_size not in _rms_norm_gamma_cache:
+            # npu_rms_norm requires a gamma weight; use ones since nanochat's RMSNorm has no learnable params
+            _rms_norm_gamma_cache[hidden_size] = torch.ones(hidden_size, dtype=x.dtype, device=x.device)
+        gamma = _rms_norm_gamma_cache[hidden_size]
+        # Cast gamma if dtype changed (e.g. first call was bf16, later call is fp32)
+        if gamma.dtype != x.dtype:
+            gamma = gamma.to(dtype=x.dtype)
+            _rms_norm_gamma_cache[hidden_size] = gamma
+        return torch.ops.npu.npu_rms_norm(x, gamma, epsilon=1e-6)[0]
+    return F.rms_norm(x, (x.size(-1),))
+
 @dataclass
 class GPTConfig:
     sequence_len: int = 2048
@@ -39,9 +58,6 @@ class GPTConfig:
     # Examples: "L"=all full context, "SL"=alternating, "SSL"=two short then one long
     window_pattern: str = "SSSL"
 
-
-def norm(x):
-    return F.rms_norm(x, (x.size(-1),)) # note that this will run in bf16, seems ok
 
 class Linear(nn.Linear):
     """nn.Linear that casts weights to match input dtype in forward.
