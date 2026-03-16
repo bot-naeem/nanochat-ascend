@@ -28,21 +28,20 @@ from nanochat.flash_attention import flash_attn
 
 # NPU-optimized RMSNorm: uses fused npu_rms_norm kernel when available
 _IS_NPU = hasattr(torch, 'npu') and torch.npu.is_available()
-# Cache for gamma tensors (one per hidden size) to avoid re-creating them
+# Cache for gamma tensors keyed by (device, dtype, hidden_size) to avoid re-creating them
 _rms_norm_gamma_cache = {}
 
 def norm(x):
     if _IS_NPU:
         hidden_size = x.size(-1)
-        if hidden_size not in _rms_norm_gamma_cache:
+        cache_key = (x.device, x.dtype, hidden_size)
+        if cache_key not in _rms_norm_gamma_cache:
             # npu_rms_norm requires a gamma weight; use ones since nanochat's RMSNorm has no learnable params
-            _rms_norm_gamma_cache[hidden_size] = torch.ones(hidden_size, dtype=x.dtype, device=x.device)
-        gamma = _rms_norm_gamma_cache[hidden_size]
-        # Cast gamma if dtype changed (e.g. first call was bf16, later call is fp32)
-        if gamma.dtype != x.dtype:
-            gamma = gamma.to(dtype=x.dtype)
-            _rms_norm_gamma_cache[hidden_size] = gamma
-        return torch.ops.npu.npu_rms_norm(x, gamma, epsilon=1e-6)[0]
+            _rms_norm_gamma_cache[cache_key] = torch.ones(hidden_size, dtype=x.dtype, device=x.device)
+        gamma = _rms_norm_gamma_cache[cache_key]
+        # Use dtype-specific machine epsilon to match F.rms_norm(x, normalized_shape) which defaults to None → finfo.eps
+        eps = torch.finfo(x.dtype).eps
+        return torch.ops.npu.npu_rms_norm(x, gamma, epsilon=eps)[0]
     return F.rms_norm(x, (x.size(-1),))
 
 @dataclass

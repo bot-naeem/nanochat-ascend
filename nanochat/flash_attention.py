@@ -148,8 +148,8 @@ def _npu_flash_attention(q, k, v, causal=True, window_size=(-1, -1)):
     if isinstance(out, tuple):
         out = out[0]
     
-    # BSH output (B, T, H*D) -> (B, T, H, D), zero-copy view
-    return out.view(B, T, H, D)
+    # BSH output (B, T, H*D) -> (B, T, H, D), reshape handles non-contiguous layouts safely
+    return out.reshape(B, T, H, D)
 
 
 # =============================================================================
