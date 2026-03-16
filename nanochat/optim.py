@@ -12,6 +12,13 @@ from torch_npu.contrib import transfer_to_npu
 import torch.distributed as dist
 from torch import Tensor
 
+# Try to import NPU fused AdamW optimizer (CANN-level fusion, single kernel for entire step)
+try:
+    from torch_npu.optim import NpuFusedAdamW as _NpuFusedAdamW
+    _HAS_NPU_FUSED_ADAMW = True
+except ImportError:
+    _HAS_NPU_FUSED_ADAMW = False
+
 # -----------------------------------------------------------------------------
 """
 Good old AdamW optimizer, fused kernel.
@@ -178,8 +185,25 @@ class MuonAdamW(torch.optim.Optimizer):
     """
     def __init__(self, param_groups: list[dict]):
         super().__init__(param_groups, defaults={})
+
+        # If NpuFusedAdamW is available, create a delegate optimizer for AdamW groups
+        self._npu_adamw = None
+        if _HAS_NPU_FUSED_ADAMW:
+            adamw_param_groups = []
+            for group in self.param_groups:
+                if group['kind'] == 'adamw':
+                    adamw_param_groups.append({
+                        'params': group['params'],
+                        'lr': group['lr'],
+                        'betas': group['betas'],
+                        'eps': group['eps'],
+                        'weight_decay': group['weight_decay'],
+                    })
+            if adamw_param_groups:
+                self._npu_adamw = _NpuFusedAdamW(adamw_param_groups)
+
         # 0-D CPU tensors to avoid torch.compile recompilation when values change
-        # AdamW tensors
+        # AdamW tensors (only needed if not using NpuFusedAdamW)
         self._adamw_step_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._adamw_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._adamw_beta1_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
@@ -283,9 +307,22 @@ class MuonAdamW(torch.optim.Optimizer):
 
     @torch.no_grad()
     def step(self):
+        # If NpuFusedAdamW is available, do all AdamW groups in one fused call
+        if self._npu_adamw is not None:
+            # Sync LR and weight_decay from our param_groups to the delegate's groups
+            npu_idx = 0
+            for group in self.param_groups:
+                if group['kind'] == 'adamw':
+                    npu_group = self._npu_adamw.param_groups[npu_idx]
+                    npu_group['lr'] = group['lr']
+                    npu_group['weight_decay'] = group['weight_decay']
+                    npu_idx += 1
+            self._npu_adamw.step()
+
         for group in self.param_groups:
             if group['kind'] == 'adamw':
-                self._step_adamw(group)
+                if self._npu_adamw is None:
+                    self._step_adamw(group)  # fallback to manual AdamW
             elif group['kind'] == 'muon':
                 self._step_muon(group)
             else:
