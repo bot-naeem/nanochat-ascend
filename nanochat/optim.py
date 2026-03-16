@@ -305,18 +305,39 @@ class MuonAdamW(torch.optim.Optimizer):
         # Copy back to original params
         torch._foreach_copy_(params, list(stacked_params.unbind(0)))
 
+    def state_dict(self):
+        """Override to include NpuFusedAdamW delegate's state in checkpoint."""
+        sd = super().state_dict()
+        if self._npu_adamw is not None:
+            sd['_npu_adamw_state'] = self._npu_adamw.state_dict()
+        return sd
+
+    def load_state_dict(self, state_dict):
+        """Override to restore NpuFusedAdamW delegate's state from checkpoint."""
+        npu_adamw_state = state_dict.pop('_npu_adamw_state', None)
+        super().load_state_dict(state_dict)
+        if self._npu_adamw is not None and npu_adamw_state is not None:
+            self._npu_adamw.load_state_dict(npu_adamw_state)
+
+    def _sync_adamw_hyperparams(self):
+        """Sync all hyperparameters from wrapper's param_groups to delegate's param_groups."""
+        if self._npu_adamw is None:
+            return
+        npu_idx = 0
+        for group in self.param_groups:
+            if group['kind'] == 'adamw':
+                npu_group = self._npu_adamw.param_groups[npu_idx]
+                npu_group['lr'] = group['lr']
+                npu_group['betas'] = group['betas']
+                npu_group['eps'] = group['eps']
+                npu_group['weight_decay'] = group['weight_decay']
+                npu_idx += 1
+
     @torch.no_grad()
     def step(self):
         # If NpuFusedAdamW is available, do all AdamW groups in one fused call
         if self._npu_adamw is not None:
-            # Sync LR and weight_decay from our param_groups to the delegate's groups
-            npu_idx = 0
-            for group in self.param_groups:
-                if group['kind'] == 'adamw':
-                    npu_group = self._npu_adamw.param_groups[npu_idx]
-                    npu_group['lr'] = group['lr']
-                    npu_group['weight_decay'] = group['weight_decay']
-                    npu_idx += 1
+            self._sync_adamw_hyperparams()
             self._npu_adamw.step()
 
         for group in self.param_groups:
