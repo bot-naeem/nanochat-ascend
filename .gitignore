@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 dev-ignore/
-report.md
+/report.md
 eval_bundle/
 
 # Secrets
@@ -14,9 +14,6 @@ wandb/
 
 # NPU runtime files
 kernel_meta/
-
-# Documentation and benchmarks
-docs/
 
 # Training logs
 runs/*.log

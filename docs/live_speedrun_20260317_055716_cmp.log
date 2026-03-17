@@ -1,0 +1,132 @@
+Reset report and wrote header to /root/.cache/nanochat/report/header.md
+Downloading 9 shards using 4 workers...
+Target directory: /root/.cache/nanochat/base_data_climbmix
+
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00002.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00006.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00001.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00005.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00000.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00004.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_06542.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00003.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00007.parquet (already exists)
+Done! Downloaded: 9/9 shards to /root/.cache/nanochat/base_data_climbmix
+Waiting for dataset download to complete...
+Downloading 171 shards using 4 workers...
+Target directory: /root/.cache/nanochat/base_data_climbmix
+
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00000.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00001.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00002.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00003.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00004.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00005.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00006.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00007.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00008.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00009.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00010.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00044.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00045.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00046.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00047.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00048.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00049.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00050.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00051.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00052.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00053.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00054.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00088.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00089.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00090.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00091.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00092.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00093.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00094.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00095.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00096.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00097.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00098.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00132.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00133.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00134.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00135.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00136.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00137.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00138.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00139.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00140.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00141.parquet (already exists)
+Skipping /root/.cache/nanochat/base_data_climbmix/shard_00142.parquet (already exists)
+Done! Downloaded: 171/171 shards to /root/.cache/nanochat/base_data_climbmix
+
+                                                       █████                █████
+                                                      ░░███                ░░███
+     ████████    ██████   ████████    ██████   ██████  ░███████    ██████  ███████
+    ░░███░░███  ░░░░░███ ░░███░░███  ███░░███ ███░░███ ░███░░███  ░░░░░███░░░███░
+     ░███ ░███   ███████  ░███ ░███ ░███ ░███░███ ░░░  ░███ ░███   ███████  ░███
+     ░███ ░███  ███░░███  ░███ ░███ ░███ ░███░███  ███ ░███ ░███  ███░░███  ░███ ███
+     ████ █████░░████████ ████ █████░░██████ ░░██████  ████ █████░░███████  ░░█████
+    ░░░░ ░░░░░  ░░░░░░░░ ░░░░ ░░░░░  ░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░░░   ░░░░░
+    
+Autodetected device type: npu
+NPU: Ascend910B2 | Peak FLOPS (BF16): 3.20e+14
+COMPUTE_DTYPE: torch.bfloat16 (auto-detected: NPU (bf16 supported))
+✓ Using NPU Flash Attention (torch_npu.npu_fusion_attention), optimized for Ascend NPU.
+Vocab size: 32,768
+Model config:
+{
+  "sequence_len": 1024,
+  "vocab_size": 32768,
+  "n_layer": 12,
+  "n_head": 6,
+  "n_kv_head": 6,
+  "n_embd": 768,
+  "window_pattern": "L"
+}
+TorchAir compile setup failed (torch._inductor.config.triton.autotune does not exist), using eager mode
+Parameter counts:
+wte                     : 25,165,824
+value_embeds            : 150,994,944
+lm_head                 : 25,165,824
+transformer_matrices    : 84,935,088
+scalars                 : 24
+total                   : 286,261,704
+Estimated FLOPs per token: 7.738517e+08
+Scaling LRs by 0.3062 for batch size 49,152 (reference: 524,288)
+Scaling weight decay from 0.280000 to 0.085732 for depth 12
+Scaling the LR for the AdamW parameters ∝1/√(768/768) = 1.000000
+Calculated number of iterations from target data:param ratio: 23,520
+Total number of training tokens: 1,156,055,040
+Tokens : Scaling params ratio: 10.50
+Total training FLOPs estimate: 8.946151e+17
+Tokens / micro-batch / rank: 48 x 1024 = 49,152
+Tokens / micro-batch: 49,152
+Total batch size 49,152 => gradient accumulation steps: 1
+Step 00000 | Validation bpb: 3.169614
+[ERROR] 2026-03-17-14:04:15 (PID:11829, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-14:04:23 (PID:11715, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+[ERROR] 2026-03-17-14:04:50 (PID:16725, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-14:04:56 (PID:16633, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+COMPUTE_DTYPE: torch.bfloat16 (auto-detected: NPU (bf16 supported))
+✓ Using NPU Flash Attention (torch_npu.npu_fusion_attention), optimized for Ascend NPU.
+[ERROR] 2026-03-17-14:05:25 (PID:17262, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-14:05:31 (PID:17146, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+[ERROR] 2026-03-17-14:05:58 (PID:17798, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-14:06:03 (PID:17682, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Generating report to /root/.cache/nanochat/report/report.md
+Warning: /root/.cache/nanochat/report/tokenizer-training.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/tokenizer-evaluation.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/base-model-training.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/base-model-loss.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/base-model-evaluation.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/chat-sft.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/chat-evaluation-sft.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/chat-rl.md does not exist, skipping
+Warning: /root/.cache/nanochat/report/chat-evaluation-rl.md does not exist, skipping
+Copying report.md to current directory for convenience

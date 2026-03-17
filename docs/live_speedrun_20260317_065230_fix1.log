@@ -1,0 +1,99 @@
+Reset report and wrote header to /root/autodl-tmp/nanochat_cache/report/header.md
+Downloading 9 shards using 4 workers...
+Target directory: /root/autodl-tmp/nanochat_cache/base_data_climbmix
+
+Done! Downloaded: 9/9 shards to /root/autodl-tmp/nanochat_cache/base_data_climbmix
+Waiting for dataset download to complete...
+Downloading 171 shards using 4 workers...
+Target directory: /root/autodl-tmp/nanochat_cache/base_data_climbmix
+
+Done! Downloaded: 171/171 shards to /root/autodl-tmp/nanochat_cache/base_data_climbmix
+
+                                                       █████                █████
+                                                      ░░███                ░░███
+     ████████    ██████   ████████    ██████   ██████  ░███████    ██████  ███████
+    ░░███░░███  ░░░░░███ ░░███░░███  ███░░███ ███░░███ ░███░░███  ░░░░░███░░░███░
+     ░███ ░███   ███████  ░███ ░███ ░███ ░███░███ ░░░  ░███ ░███   ███████  ░███
+     ░███ ░███  ███░░███  ░███ ░███ ░███ ░███░███  ███ ░███ ░███  ███░░███  ░███ ███
+     ████ █████░░████████ ████ █████░░██████ ░░██████  ████ █████░░███████  ░░█████
+    ░░░░ ░░░░░  ░░░░░░░░ ░░░░ ░░░░░  ░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░░░   ░░░░░
+    
+Autodetected device type: npu
+NPU: Ascend910B2 | Peak FLOPS (BF16): 3.20e+14
+COMPUTE_DTYPE: torch.bfloat16 (auto-detected: NPU (bf16 supported))
+✓ Using NPU Flash Attention (torch_npu.npu_fusion_attention), optimized for Ascend NPU.
+Vocab size: 32,768
+Model config:
+{
+  "sequence_len": 1024,
+  "vocab_size": 32768,
+  "n_layer": 12,
+  "n_head": 6,
+  "n_kv_head": 6,
+  "n_embd": 768,
+  "window_pattern": "L"
+}
+Model compiled with TorchAir NPU backend (max-autotune mode)
+Running TorchAir warmup forward...
+TorchAir warmup forward succeeded
+Parameter counts:
+wte                     : 25,165,824
+value_embeds            : 150,994,944
+lm_head                 : 25,165,824
+transformer_matrices    : 84,935,088
+scalars                 : 24
+total                   : 286,261,704
+Estimated FLOPs per token: 7.738517e+08
+Scaling LRs by 0.3062 for batch size 49,152 (reference: 524,288)
+Scaling weight decay from 0.280000 to 0.085732 for depth 12
+Scaling the LR for the AdamW parameters ∝1/√(768/768) = 1.000000
+Calculated number of iterations from target data:param ratio: 23,520
+Total number of training tokens: 1,156,055,040
+Tokens : Scaling params ratio: 10.50
+Total training FLOPs estimate: 8.946151e+17
+Tokens / micro-batch / rank: 48 x 1024 = 49,152
+Tokens / micro-batch: 49,152
+Total batch size 49,152 => gradient accumulation steps: 1
+.Step 00000 | Validation bpb: 3.169614
+..[ERROR] 2026-03-17-14:58:39 (PID:52159, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-14:58:48 (PID:52039, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+Evaluating model: base_model (step 6)
+Eval modes: bpb, core, sample
+
+================================================================================
+Model Samples
+================================================================================
+
+Conditioned samples:
+[ERROR] 2026-03-17-14:59:23 (PID:62896, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+COMPUTE_DTYPE: torch.bfloat16 (auto-detected: NPU (bf16 supported))
+✓ Using NPU Flash Attention (torch_npu.npu_fusion_attention), optimized for Ascend NPU.
+Inherited max_seq_len=2048 from pretrained checkpoint
+NOTE: --device-batch-size=4 overrides pretrained value of 16
+Inherited total_batch_size=32768 from pretrained checkpoint
+Inherited embedding_lr=0.3 from pretrained checkpoint
+Inherited unembedding_lr=0.008 from pretrained checkpoint
+Inherited matrix_lr=0.02 from pretrained checkpoint
+Tokens / micro-batch / rank: 4 x 2048 = 8,192
+Tokens / micro-batch: 8,192
+Total batch size 32,768 => gradient accumulation steps: 4
+Scaling the LR for the AdamW parameters ∝1/√(768/768) = 1.000000
+Loaded optimizer state from pretrained checkpoint (momentum buffers only, LRs reset)
+[ERROR] 2026-03-17-14:59:59 (PID:63547, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-15:00:05 (PID:63455, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Autodetected device type: npu
+[ERROR] 2026-03-17-15:00:34 (PID:64127, Device:0, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+[ERROR] 2026-03-17-15:00:40 (PID:64013, Device:-1, RankID:-1) ERR99999 UNKNOWN applicaiton exception
+Generating report to /root/autodl-tmp/nanochat_cache/report/report.md
+Warning: /root/autodl-tmp/nanochat_cache/report/tokenizer-training.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/tokenizer-evaluation.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/base-model-training.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/base-model-loss.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/base-model-evaluation.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/chat-sft.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/chat-evaluation-sft.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/chat-rl.md does not exist, skipping
+Warning: /root/autodl-tmp/nanochat_cache/report/chat-evaluation-rl.md does not exist, skipping
+Copying report.md to current directory for convenience
