@@ -30,35 +30,7 @@ The project optimization work so far can be summarized in five stages:
 5. Optimizer and engineering fixes:
    - conditionally integrated `NpuFusedAdamW`
    - implemented `state_dict()` / `load_state_dict()` bridging for checkpoint-resume correctness
-   - moved cache/checkpoint base dir to `NANOCHAT_BASE_DIR` so training can use a larger disk
 
-## Training Comparison
-
-Single-card Ascend 910B benchmark highlights collected during this port:
-
-| Stage | Main Change | Typical Config | Avg tok/sec | Avg dt | Notes |
-|------|-------------|----------------|------------:|-------:|-------|
-| Baseline | SDPA (`torch_npu` optimized) | `seq=1024, bs=8, total=32768` | ~58,000 | ~560 ms | Initial working NPU baseline |
-| Attention upgrade | `npu_fusion_attention` | `seq=1024, bs=8, total=32768` | ~59,500 | ~550 ms | ~3% faster than SDPA |
-| Batch tuning | Larger micro-batch | `seq=1024, bs=48, total=49152` | ~65,200 | ~753 ms | ~12% faster than the `bs=8` baseline |
-| Kernel optimization | `BSH` Flash Attention + fused NPU RMSNorm | `seq=1024, bs=48, total=49152` | ~84,600 | ~581 ms | ~30% faster than the previous `bs=48` baseline |
-
-Additional `seq=2048` batch-size ladder results:
-
-| Config | Status | Avg tok/sec | Avg dt | Peak Memory |
-|--------|--------|------------:|-------:|------------:|
-| `seq=2048, bs=16` | OK | 78,935 | 415.12 ms | 30,139.92 MiB |
-| `seq=2048, bs=20` | OK | 80,058 | 511.63 ms | 37,120.49 MiB |
-| `seq=2048, bs=24` | OK | 80,294 | 612.15 ms | 44,118.03 MiB |
-| `seq=2048, bs=28` | OK | 80,225 | 714.79 ms | 51,104.09 MiB |
-| `seq=2048, bs=30` | OK | 80,311 | 765.02 ms | 54,588.63 MiB |
-| `seq=2048, bs=32` | OOM in full training | - | - | - |
-
-Practical takeaways:
-
-- For pure throughput on current code, `seq=1024, bs=48` is still the best measured point.
-- For native `seq=2048` training, `bs=24` is the best balance between speed, memory headroom, and stability.
-- Increasing `bs` beyond `24` at `seq=2048` provides almost no extra throughput, only higher memory pressure.
 
 ## Quick Start
 

@@ -57,9 +57,9 @@ python -m nanochat.dataset -n 8
 python -m nanochat.dataset -n 170 &
 DATASET_DOWNLOAD_PID=$!
 # train the tokenizer with vocab size 2**15 = 32768 on ~2B characters of data
-# python -m scripts.tok_train
+python -m scripts.tok_train
 # evaluate the tokenizer (report compression ratio etc.)
-# python -m scripts.tok_eval
+python -m scripts.tok_eval
 # 
 # -----------------------------------------------------------------------------
 # Base model (pretraining)
@@ -71,9 +71,8 @@ TORCHDYNAMO_DISABLE=1 torchrun --standalone --nproc_per_node=1 -m scripts.base_t
     --depth=12 \
     --run=$WANDB_RUN \
     --model-tag="d12" \
-    --device-batch-size=48 \
-    --max-seq-len=1024 \
-    --total-batch-size=49152 \
+    --device-batch-size=16 \
+    --max-seq-len=2048 \
     --window-pattern=L \
     --core-metric-every=999999 \
     --sample-every=-1 \
