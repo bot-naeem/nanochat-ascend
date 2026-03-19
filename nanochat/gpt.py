@@ -137,7 +137,7 @@ class CausalSelfAttention(nn.Module):
                 kv_cache.advance(T)
 
         # Re-assemble the heads and project back to residual stream
-        y = y.contiguous().view(B, T, -1)
+        y = y.view(B, T, -1)
         y = self.c_proj(y)
         return y
 

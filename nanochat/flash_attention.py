@@ -249,8 +249,8 @@ def flash_attn_with_kvcache(q, k_cache, v_cache, k=None, v=None, cache_seqlens=N
 
     # Insert new k, v into cache (in-place, matching FA3 behavior)
     if k is not None and v is not None:
-        k_cache[:, pos:pos+T_new, :, :] = k
-        v_cache[:, pos:pos+T_new, :, :] = v
+        k_cache[:, pos:pos+T_new, :, :] = k.to(k_cache.dtype)
+        v_cache[:, pos:pos+T_new, :, :] = v.to(v_cache.dtype)
 
     # Get full cache up to current position + new tokens
     end_pos = pos + T_new
